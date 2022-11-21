@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { createError } from "../utils/error";
 
 // Registrasi
 const registrasi = async (req, res, next) => {
@@ -28,14 +29,13 @@ const login = async (req, res, next) => {
     const student = await req.context.models.students.findOne({
       where: { nim: req.body.nim },
     });
-    if (!student)
-      return res.status(404).json({ message: "User Or Password Not Valid " });
+    if (!student) return next(createError(404, "User Not Found"));
     const isPassword = await bcrypt.compare(
       req.body.password,
       student.password
     );
     if (!isPassword)
-      return res.status(404).json({ message: "User Or Password Not Valid " });
+      return next(createError(404, "Username Or Password Invalid"));
     const token = jwt.sign(
       {
         id: student.student_id,
